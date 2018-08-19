@@ -1,5 +1,8 @@
-# ResultMonad
-C# implementation of the result monad with query syntax support and extensions for Tasks and IEnumerable
+# Monad
+C# implementation of the result and other monads with query syntax support and extensions for Tasks and IEnumerable
+
+# NuGet
+https://www.nuget.org/packages/Monad/1.0.0
 
 # Task result monad
 
