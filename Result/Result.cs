@@ -156,5 +156,21 @@ namespace Result
         ) => source.Match(func,
                           error => error.ToFailureResult<TResult>()
                                         .ToTask());
+
+        internal static Task<TResult> MatchAsync<T, TResult>
+        (
+            this Task<IResult<T>> source,
+            Func<T, Task<TResult>> onSuccess,
+            Func<string, TResult> onError
+        ) => source.Bind(result => result.Match(onSuccess, 
+                                                error => onError(error).ToTask()))
+                   .Unwrap();
+        
+        internal static Task<TResult> MatchAsync<T, TResult>
+        (
+            this Task<IResult<T>> source,
+            Func<T, TResult> onSuccess,
+            Func<string, TResult> onError
+        ) => source.Bind(result => result.Match(onSuccess, onError));
     }
 }
