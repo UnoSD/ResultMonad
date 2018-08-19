@@ -9,6 +9,12 @@ namespace System.Threading.Tasks
         internal static Task<T> ToTask<T>(this T source) =>
             Task.FromResult(source);
 
+        internal static Task<TResult> Select<T, TResult>
+        (
+            this Task<T> source,
+            Func<T, TResult> func
+        ) => source.Map(func);
+
         internal static async Task<TResult> Map<T, TResult>
         (
             this Task<T> source,
@@ -20,6 +26,20 @@ namespace System.Threading.Tasks
 
             return func(result);
         }
+
+        internal static Task<TResult> SelectMany<T, TResult>
+        (
+            this Task<T> source,
+            Func<T, Task<TResult>> func
+        ) => source.Bind(func);
+
+        internal static Task<TOutput> SelectMany<T, TResult, TOutput>
+        (
+            this Task<T> source,
+            Func<T, Task<TResult>> func,
+            Func<T, TResult, TOutput> projection
+        ) => source.Bind(func)
+                   .Map(result => projection(source.Result, result));
 
         internal static Task<TResult> Bind<T, TResult>
         (
