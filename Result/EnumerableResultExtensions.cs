@@ -30,6 +30,24 @@ namespace EnumerableResult
                          throw new ArgumentNullException(nameof(left))
             );
 
+        static IResult<IEnumerable<T>> AnyOrNothing<T>
+        (this IEnumerable<IResult<T>> source) =>
+            source.Aggregate
+            (
+                 string.Empty
+                       .ToFailureResult<IEnumerable<T>>(),
+                 (left, right) =>
+                     right is ISuccessResult<T> success ?
+                         left is ISuccessResult<IEnumerable<T>> s ? s.Result.Cons(success.Result).ToResult() :
+                         left is IFailureResult<IEnumerable<T>> _ ? new[] { success.Result }.ToResult() :
+                         throw new ArgumentNullException(nameof(left)) :
+                     right is IFailureResult<T> failure ?
+                         left is ISuccessResult<IEnumerable<T>>   ? left :
+                         left is IFailureResult<IEnumerable<T>> f ? $"{failure.Error}\n{f.Error}".ToFailureResult<IEnumerable<T>>() :
+                         throw new ArgumentNullException(nameof(left)) :
+                     throw new ArgumentNullException(nameof(right))
+            );
+
         // This call is ambiguous with SelectMany<IEnumerable<T>, T>
         // the query syntax will prefer silently the other. This
         // needs to be into another namespace.
@@ -96,5 +114,19 @@ namespace EnumerableResult
         ) => source.BindManyAsync(func)
                    .MatchAsync(result => result.ToResult().ToTask(),
                                _ => source.BindManyAsync(fallbackFunc)).Unwrap();
+
+        internal static IResult<IEnumerable<TResult>> BindMultipleAll<T, TResult>
+        (
+            this IResult<T> source, 
+            params Func<T, IResult<TResult>>[] func
+        ) => source.Match(result => func.Select(fun => fun(result)).AllOrNothing(),
+                          error => error.ToFailureResult<IEnumerable<TResult>>());
+
+        internal static IResult<IEnumerable<TResult>> BindMultipleAny<T, TResult>
+        (
+            this IResult<T> source, 
+            params Func<T, IResult<TResult>>[] func
+        ) => source.Match(result => func.Select(fun => fun(result)).AnyOrNothing(),
+                          error => error.ToFailureResult<IEnumerable<TResult>>());
     }
 }
