@@ -3,9 +3,9 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageId>ResultMonad</PackageId>
+    <PackageId>Monad</PackageId>
     <Authors>Stefano d'Antonio</Authors>
-    <Product>ResultMonad</Product>
+    <Product>Monad</Product>
     <Copyright>Stefano d'Antonio</Copyright>
     <PackageProjectUrl>https://github.com/UnoSD/ResultMonad</PackageProjectUrl>
     <RepositoryUrl>https://github.com/UnoSD/ResultMonad</RepositoryUrl>
