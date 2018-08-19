@@ -56,5 +56,22 @@ namespace Test
             Assert.That(query.Result(), Is.EqualTo(chain.Result()));
             Assert.That(chain.Result(), Is.EqualTo("pippopeppepippo"));
         }
+
+        [Test]
+        public void MonadTask()
+        {
+            var query =
+                from i in "pippo".ToResult()
+                from p in (i + "peppe").ToResult().ToTask()
+                select p;
+
+            var chain =
+                "pippo".ToResult()
+                       .SelectMany(i => (i + "peppe").ToResult()
+                                                     .ToTask());
+
+            Assert.That(query.Result(), Is.EqualTo(chain.Result()));
+            Assert.That(chain.Result(), Is.EqualTo("pippopeppe"));
+        }
     }
 }

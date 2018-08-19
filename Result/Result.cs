@@ -132,5 +132,29 @@ namespace Result
             this Task<IResult<T>> source,
             Func<T, IResult<TResult>> func
         ) => source.Bind(result => result.Bind(func));
+
+        internal static Task<IResult<TResult>> SelectMany<T, TResult>
+        (
+            this IResult<T> source,
+            Func<T, Task<IResult<TResult>>> func
+        ) => source.BindAsync(func);
+
+        internal static Task<IResult<TOutput>> SelectMany<T, TResult, TOutput>
+        (
+            this IResult<T> source,
+            Func<T, Task<IResult<TResult>>> func,
+            Func<T, TResult, TOutput> projection
+        ) => source.BindAsync(func)
+                   .BindAsync(result => projection(((ISuccessResult<T>)source).Result,
+                                                   result)
+                                            .ToResult());
+
+        internal static Task<IResult<TResult>> BindAsync<T, TResult>
+        (
+            this IResult<T> source,
+            Func<T, Task<IResult<TResult>>> func
+        ) => source.Match(func,
+                          error => error.ToFailureResult<TResult>()
+                                        .ToTask());
     }
 }
