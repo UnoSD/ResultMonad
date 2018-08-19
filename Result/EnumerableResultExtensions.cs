@@ -102,7 +102,7 @@ namespace EnumerableResult
             Func<T, Task<IResult<TResult>>> func
         ) => source.Match(result => result.Select(func)
                                           .WhenAll()
-                                          .Bind(t => t.AllOrNothing()),
+                                          .Map(t => t.AllOrNothing()),
                           error => error.ToFailureResult<IEnumerable<TResult>>().ToTask());
 
         // First error message is lost when second fails

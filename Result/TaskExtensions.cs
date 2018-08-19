@@ -9,7 +9,7 @@ namespace System.Threading.Tasks
         internal static Task<T> ToTask<T>(this T source) =>
             Task.FromResult(source);
 
-        internal static async Task<TResult> Bind<T, TResult>
+        internal static async Task<TResult> Map<T, TResult>
         (
             this Task<T> source,
             Func<T, TResult> func
@@ -20,6 +20,13 @@ namespace System.Threading.Tasks
 
             return func(result);
         }
+
+        internal static Task<TResult> Bind<T, TResult>
+        (
+            this Task<T> source,
+            Func<T, Task<TResult>> func
+        ) => source.Map(func)
+                   .Unwrap();
 
         internal static Task<T[]> WhenAll<T>(this IEnumerable<Task<T>> tasks) => 
             Task.WhenAll(tasks);
@@ -44,15 +51,6 @@ namespace System.Threading.Tasks
                 results.Add(await task.ConfigureAwait(false));
 
             return results;
-        }
-
-        internal static async Task<TResult> Map<T, TResult>
-        (this Task<T> source, Func<T, TResult> func)
-        {
-            var result = 
-                await source.ConfigureAwait(false);
-
-            return func(result);
         }
     }
 }

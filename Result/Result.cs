@@ -102,7 +102,7 @@ namespace Result
         (
             this IResult<T> source,
             Func<T, Task<TResult>> func
-        ) => source.Match(result => func(result).Bind(o => o.ToResult()),
+        ) => source.Match(result => func(result).Map(o => o.ToResult()),
                           error => error.ToFailureResult<TResult>()
                                         .ToTask());
 
@@ -131,7 +131,7 @@ namespace Result
         (
             this Task<IResult<T>> source,
             Func<T, IResult<TResult>> func
-        ) => source.Bind(result => result.Bind(func));
+        ) => source.Map(result => result.Bind(func));
 
         internal static Task<IResult<TResult>> SelectMany<T, TResult>
         (
@@ -163,14 +163,13 @@ namespace Result
             Func<T, Task<TResult>> onSuccess,
             Func<string, TResult> onError
         ) => source.Bind(result => result.Match(onSuccess, 
-                                                error => onError(error).ToTask()))
-                   .Unwrap();
+                                                error => onError(error).ToTask()));
         
         internal static Task<TResult> MatchAsync<T, TResult>
         (
             this Task<IResult<T>> source,
             Func<T, TResult> onSuccess,
             Func<string, TResult> onError
-        ) => source.Bind(result => result.Match(onSuccess, onError));
+        ) => source.Map(result => result.Match(onSuccess, onError));
     }
 }
