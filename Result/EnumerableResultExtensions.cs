@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using Result;
 
 namespace EnumerableResult
@@ -59,5 +60,31 @@ namespace EnumerableResult
             Func<T, IResult<TResult>> func
         ) => source.Match(success => success.Select(func).AllOrNothing(),
                           failure => failure.ToFailureResult<TResult[]>());
+
+        internal static Task<IResult<IEnumerable<TResult>>> SelectMany<T, TResult>
+        (
+            this IResult<IEnumerable<T>> source,
+            Func<T, Task<IResult<TResult>>> func
+        ) => source.BindManyAsync(func);
+
+        internal static Task<IResult<IEnumerable<TOutput>>> SelectMany<T, TResult, TOutput>
+        (
+            this IResult<IEnumerable<T>> source,
+            Func<T, Task<IResult<TResult>>> func,
+            Func<T, TResult, TOutput> projection
+        ) => source.BindManyAsync(func)
+                   .BindAsync(result => 
+                       result.Zip(((ISuccessResult<IEnumerable<T>>)source).Result,
+                                  (l, r) => projection(r, l))
+                             .ToResult());
+
+        internal static Task<IResult<IEnumerable<TResult>>> BindManyAsync<T, TResult>
+        (
+            this IResult<IEnumerable<T>> source,
+            Func<T, Task<IResult<TResult>>> func
+        ) => source.Match(result => result.Select(func)
+                                          .WhenAll()
+                                          .Bind(t => t.AllOrNothing()),
+                          error => error.ToFailureResult<IEnumerable<TResult>>().ToTask());
     }
 }

@@ -16,6 +16,9 @@ namespace Test
         internal static T Result<T>(this Task<IResult<T>> source) =>
             source.Result.Result();
 
+        internal static T Result<T>(this Task<IResult<IEnumerable<T>>> source) =>
+            source.Result.Result();
+
         internal static T Result<T>(this IResult<IEnumerable<T>> source) =>
             source.Result<IEnumerable<T>>().Single();
     }
