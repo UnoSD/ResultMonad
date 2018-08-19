@@ -86,5 +86,15 @@ namespace EnumerableResult
                                           .WhenAll()
                                           .Bind(t => t.AllOrNothing()),
                           error => error.ToFailureResult<IEnumerable<TResult>>().ToTask());
+
+        // First error message is lost when second fails
+        internal static Task<IResult<IEnumerable<TResult>>> BindManyAsync<T, TResult>
+        (
+            this IResult<IEnumerable<T>> source,
+            Func<T, Task<IResult<TResult>>> func,
+            Func<T, Task<IResult<TResult>>> fallbackFunc
+        ) => source.BindManyAsync(func)
+                   .MatchAsync(result => result.ToResult().ToTask(),
+                               _ => source.BindManyAsync(fallbackFunc)).Unwrap();
     }
 }
